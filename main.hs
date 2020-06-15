@@ -51,24 +51,30 @@ update_board (player, v, h) (t, m, b) =
     update_row 'c' (l, c, _) = (l, c, Just player)
     update_row _ row = row
 
-game :: Board -> IO ()
-game board = do
+game :: Player -> Board -> IO ()
+game player board = do
   print_board board
+
+  result <- turn player board
+
+  case (result, player) of
+    (Nothing, _) -> return ()
+    (Just b, Human) -> game AI b
+    (Just b, AI) -> game Human b
+  
+turn :: Player -> Board -> IO (Maybe Board)
+turn Human = human_turn
+turn AI = ai_turn
+
+human_turn :: Board -> IO (Maybe Board)
+human_turn board = do
   inp <- getLine
   if('q' `elem` inp) 
-    then return ()
-    else do
-      game (update_board (Human, (read([inp !! 0]) :: Integer), (inp !! 1)) board)
+    then return Nothing
+    else return (Just (update_board (Human, (read([inp !! 0]) :: Integer), (inp !! 1)) board))
 
-turn :: Player -> Board -> IO Board
-turn Human board = human_turn board
-turn AI board = ai_turn board
-
-human_turn :: Board -> IO Board
-human_turn board = do return board 
-
-ai_turn :: Board -> IO Board
-ai_turn board = do return board
+ai_turn :: Board -> IO (Maybe Board)
+ai_turn board = return (Just board)
 
 
 main :: IO ()
@@ -76,6 +82,6 @@ main = do
   g <- getStdGen
   print . take 1 $ (randomRs (0.0 :: Float, 1.0 :: Float) g)
   -- print . take 10 $ (randomRs (0.0, 1.0) g)
-  game (create_board ())
+  game Human (create_board ())
 
       
