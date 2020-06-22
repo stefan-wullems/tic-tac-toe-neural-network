@@ -1,10 +1,8 @@
-import System.Random
-
-data Player = Human | AI
+data Player = X | O
 
 instance Show Player where
-  show Human = "X"
-  show AI = "O"
+  show X = "X"
+  show O = "O"
 
 
 type Row = (Maybe Player, Maybe Player, Maybe Player)
@@ -51,37 +49,44 @@ update_board (player, v, h) (t, m, b) =
     update_row 'c' (l, c, _) = (l, c, Just player)
     update_row _ row = row
 
-game :: Player -> Board -> IO ()
-game player board = do
-  print_board board
+    
 
-  result <- turn player board
+    -- player_turn = start_tic_tac_toe starting_player
+    
+    -- result <- get_player_turn
+    -- case of player_turn "1a"
+    --  (Left ai_turn) -> 
+    --  (Right Winner) -> print "Player won"
+    --  (Right Tie) -> print "Tied"
 
-  case (result, player) of
-    (Nothing, _) -> return ()
-    (Just b, Human) -> game AI b
-    (Just b, AI) -> game Human b
+data EndGameState = Win | Tie
+
+data Turn = Turn (String -> Either EndGameState Turn)
+
+tic_tac_toe :: Player -> Turn
+tic_tac_toe starting_player = 
+  where
+    initial_board = create_board ()
+    play board starting_player = 
+  
+
+
+  
   
 turn :: Player -> Board -> IO (Maybe Board)
-turn Human = human_turn
-turn AI = ai_turn
+turn X = X_turn
+turn O = ai_turn
 
-human_turn :: Board -> IO (Maybe Board)
-human_turn board = do
+player_turn :: Board -> IO (Maybe Board)
+player_turn board = do
   inp <- getLine
   if('q' `elem` inp) 
     then return Nothing
-    else return (Just (update_board (Human, (read([inp !! 0]) :: Integer), (inp !! 1)) board))
+    else return (Just (update_board (X, (read([inp !! 0]) :: Integer), (inp !! 1)) board))
 
 ai_turn :: Board -> IO (Maybe Board)
 ai_turn board = return (Just board)
 
-
 main :: IO ()
 main = do 
-  g <- getStdGen
-  print . take 1 $ (randomRs (0.0 :: Float, 1.0 :: Float) g)
-  -- print . take 10 $ (randomRs (0.0, 1.0) g)
-  game Human (create_board ())
-
-      
+  game X (create_board ())
