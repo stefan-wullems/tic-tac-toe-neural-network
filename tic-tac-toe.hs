@@ -4,12 +4,15 @@ instance Show Player where
   show X = "X"
   show O = "O"
 
+other_player :: Player -> Player
+other_player X = O
+other_player O = X
 
 type Row = (Maybe Player, Maybe Player, Maybe Player)
 type Board = (Row, Row, Row)
 
-create_board :: () -> Board
-create_board _ = 
+empty_board :: Board
+empty_board = 
   (
     (Nothing, Nothing, Nothing),
     (Nothing, Nothing, Nothing),
@@ -32,16 +35,16 @@ print_board (t, m, b) = putStr (
     show_symbol (Just p) = show p
 
 
-type Move = (Player, Integer, Char)
+type Move = (Integer, Char)
 
-update_board :: Move -> Board -> Board
-update_board (player, v, h) (t, m, b) =
+update_board :: Board -> Player -> Move -> Board
+update_board board@(top, middle, bottom) player (v, h) =
   
   case v of 
-    1 -> (update_row h t, m, b)
-    2 -> (t, update_row h m, b)
-    3 -> (t, m, update_row h b)
-    _ -> (t, m, b)
+    1 -> (update_row h top, middle, bottom)
+    2 -> (top, update_row h middle, bottom)
+    3 -> (top, middle, update_row h bottom)
+    _ -> board
   
   where 
     update_row 'a' (_, c, r) = (Just player, c, r)
@@ -49,44 +52,48 @@ update_board (player, v, h) (t, m, b) =
     update_row 'c' (l, c, _) = (l, c, Just player)
     update_row _ row = row
 
-    
-
-    -- player_turn = start_tic_tac_toe starting_player
-    
-    -- result <- get_player_turn
-    -- case of player_turn "1a"
-    --  (Left ai_turn) -> 
-    --  (Right Winner) -> print "Player won"
-    --  (Right Tie) -> print "Tied"
-
 data EndGameState = Win | Tie
+data Turn = Turn (Either (Move -> Turn) EndGameState) Player (() -> IO ())
 
-data Turn = Turn (String -> Either EndGameState Turn)
+create_turn :: Board -> Player -> Turn
+create_turn board player =
+  Turn (Left $ (next_turn)) player (\_ -> print_board board)
+  where
+    next_turn move =
+      create_turn (update_board board player move) (other_player player)
 
 tic_tac_toe :: Player -> Turn
-tic_tac_toe starting_player = 
+tic_tac_toe starting_player = create_turn empty_board starting_player
+   
+start_game :: Player -> (() -> IO (Maybe Move), () -> IO (Maybe Move)) -> IO ()
+start_game starting_player (get_move_x, get_move_o) = do
+  game $ tic_tac_toe starting_player
+
   where
-    initial_board = create_board ()
-    play board starting_player = 
-  
+    game (Turn (Left next_turn) current_player show_board) = do
+      show_board ()
 
+      case current_player of
+        X -> do
+          move <- get_move_x ()
+          play_turn move
+        O -> do
+          move <- get_move_o ()
+          play_turn move
 
-  
-  
-turn :: Player -> Board -> IO (Maybe Board)
-turn X = X_turn
-turn O = ai_turn
+      where
+        play_turn Nothing = do return ()
+        play_turn (Just move) = do game $ next_turn move
+    game (Turn _ _ show_board) = do
+      show_board ()
 
-player_turn :: Board -> IO (Maybe Board)
-player_turn board = do
+player_turn :: () -> IO (Maybe Move)
+player_turn _ = do
   inp <- getLine
   if('q' `elem` inp) 
     then return Nothing
-    else return (Just (update_board (X, (read([inp !! 0]) :: Integer), (inp !! 1)) board))
-
-ai_turn :: Board -> IO (Maybe Board)
-ai_turn board = return (Just board)
-
+    else return $ Just (read([inp !! 0]) :: Integer, (inp !! 1))
+  
 main :: IO ()
 main = do 
-  game X (create_board ())
+  start_game X (player_turn, player_turn)
