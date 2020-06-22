@@ -1,3 +1,5 @@
+module TicTacToe (tic_tac_toe, Player, Move, Controller(Controller)) where
+
 data Player = X | O
 
 instance Show Player where
@@ -62,38 +64,27 @@ create_turn board player =
     next_turn move =
       create_turn (update_board board player move) (other_player player)
 
-tic_tac_toe :: Player -> Turn
-tic_tac_toe starting_player = create_turn empty_board starting_player
+data Controller = Controller {
+  play :: Player -> IO (Maybe Move),
+  on_win :: Player -> IO (),
+  on_draw :: Player -> IO ()
+}
    
-start_game :: Player -> (() -> IO (Maybe Move), () -> IO (Maybe Move)) -> IO ()
-start_game starting_player (get_move_x, get_move_o) = do
-  game $ tic_tac_toe starting_player
+tic_tac_toe :: Player -> Controller -> IO ()
+tic_tac_toe starting_player controller = do
+  game $ create_turn empty_board starting_player
 
   where
     game (Turn (Left next_turn) current_player show_board) = do
       show_board ()
 
-      case current_player of
-        X -> do
-          move <- get_move_x ()
-          play_turn move
-        O -> do
-          move <- get_move_o ()
-          play_turn move
+      input <- (play controller) current_player
 
-      where
-        play_turn Nothing = do return ()
-        play_turn (Just move) = do game $ next_turn move
+      case input of
+        Nothing -> return ()
+        (Just move) -> game $ next_turn move
+    
+
     game (Turn _ _ show_board) = do
       show_board ()
 
-player_turn :: () -> IO (Maybe Move)
-player_turn _ = do
-  inp <- getLine
-  if('q' `elem` inp) 
-    then return Nothing
-    else return $ Just (read([inp !! 0]) :: Integer, (inp !! 1))
-  
-main :: IO ()
-main = do 
-  start_game X (player_turn, player_turn)
