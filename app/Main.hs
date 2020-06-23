@@ -1,3 +1,5 @@
+module Main where
+
 import TicTacToe
 
 player_turn :: () -> IO (Maybe Move)

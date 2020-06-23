@@ -1,4 +1,4 @@
-module TicTacToe (tic_tac_toe, Player, Move, Controller(Controller)) where
+module TicTacToe (tic_tac_toe, Player(..), Move, Controller(..)) where
 
 data Player = X | O
 
