@@ -1,4 +1,4 @@
-module InitDset where
+module Dset where
 
 import Data.Maybe
 
@@ -117,7 +117,6 @@ list_to_csv headers el_to_cols list = CSV (join_cols headers ++ concatMap (join_
 write_csv :: String -> CSV -> IO ()
 write_csv file_name (CSV csv) = do
   writeFile file_name csv
-   
 
 init_dset :: () -> IO ()
 init_dset _ = do
@@ -126,4 +125,10 @@ init_dset _ = do
   let csv = list_to_csv ["ID", "children"] line_to_cols states_list
 
   write_csv "./dset.csv" csv
-  
+
+data TicTacToeNeuralNet = 
+  Active { nextTurn :: () -> Maybe (String, TicTacToeNeuralNet) } | 
+  Passive { addOpponentTurn :: String -> Maybe TicTacToeNeuralNet } |
+  EndGame { applyLearnings :: () -> IO () }
+
+-- start_tic_tac_toe_nn :: String -> 

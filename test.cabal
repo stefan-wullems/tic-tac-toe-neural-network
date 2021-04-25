@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0c830f506c37f050f9f023b806f6c3db82f5fd24ba317e3f0d16f2b5a50037b5
+-- hash: a2225f4f18d887313600b3385ad17b4dc1f13467d64592376213ce42898c2ef1
 
 name:           test
 version:        0.1.0.0
@@ -27,7 +27,7 @@ source-repository head
 
 library
   exposed-modules:
-      InitDset
+      Dset
       TicTacToe
   other-modules:
       Paths_test
